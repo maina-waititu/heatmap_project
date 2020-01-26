@@ -1,0 +1,325 @@
+{% load leaflet_tags %}
+{% load geojson_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Simple heat map</title>
+
+  <!--    django-leaflet tags-->
+  {% leaflet_js %}
+  {% leaflet_css %}
+
+  <!-- Bootstrap core CSS -->
+  <link href="{% static 'bootstrap/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+  <!-- Custom styles -->
+  <link href="{% static 'bootstrap/css/simple-sidebar.css' %}" rel="stylesheet">
+
+  <!--      static files-->
+
+  <!-- css spinner -->
+      <!-- <link rel="stylesheet" type="text/css" href="{% static 'spin.js/spin.css' %}"> -->
+
+  <!-- javascript -->
+  <script src="{% static 'leaflet-ajax/dist/leaflet.ajax.min.js' %}"></script>
+  <!--       <script src="{% static 'spin.js/spin.js' %}"></script> -->
+  <script src="{% static 'leaflet-spin/leaflet.spin.js' %}"></script>
+
+    <!-- heatmap by Vladimir Agafonkin-->
+  <script src="{% static 'heatmap/leaflet.heat.js' %}"></script>
+
+  <!--Jquesy-->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+
+  <!-- load markercluster plugin -->
+  <link rel="stylesheet" href="{% static 'leaflet-markercluster/dist/MarkerCluster.css' %}" />
+  <link rel="stylesheet" href="{% static 'leaflet-markercluster/dist/MarkerCluster.Default.css' %}" />
+  <script src="{% static 'leaflet-markercluster/src/leaflet.markercluster-src.js' %}"></script>
+
+  <!--   style -->
+  {% block style %}
+    <style>
+      .leaflet-container {
+            width: 100%;
+            height: 400px;
+
+      }
+/*      #mymap{
+        height: 100%;
+        width: 100%;
+      }*/
+
+      #specialbigmap {
+            height: 800px;
+            width: 100%;
+      }
+      / * Resize the "display_raw" textbox */
+      .django-leaflet-raw-textarea {
+            width: 100%;
+      }
+    </style>
+{% endblock style %}
+</head>
+
+<body>
+{% block content %}
+  <div class="d-flex" id="wrapper">
+
+    <!-- Sidebar -->
+    <div class="bg-light border-right" id="sidebar-wrapper">
+      <div class="sidebar-heading">WISH2ACTION </div>
+      <div class="list-group list-group-flush">
+      <!-- <div class="sidebar-heading">Limit your search </div>  -->
+        <a href="#" class="list-group-item list-group-item-action bg-light">Dashboard</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Year</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Country</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Program</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Resources</a>
+        <!-- <a href="#" class="list-group-item list-group-item-action bg-light">Status</a> -->
+      </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+
+      <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <button class="btn btn-primary" id="menu-toggle">Toggle Menu</button>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+            <li class="nav-item active">
+              <a class="nav-link" href=".">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Health Data</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Download
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">Kenya Health Facilities</a>
+                <a class="dropdown-item" href="health.geojson">Central Health Facilities</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Something else here</a>
+              </div>
+            </li>
+          </ul>
+          <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
+          <button type="button" class="btn btn-outline-secondary" href="../admin/">Login</button>
+          <button type="button" class="btn btn-outline-secondary" href="signup.html">Register</button>
+        </div>
+
+      </nav>
+
+      <div class="container-fluid">
+        <h1 class="mt-4">Sample generic heatmap</h1>
+
+        <!-- user selection query -->
+        <form id="aoi-form", method="post", action="">
+          {% csrf_token %}
+          <div class="form-row align-items-center">
+            <div class="col-auto my-1">
+              <label class="mr-sm-2 sr-only" for="inlineFormCustomSelect">Preference</label>
+              <select class="custom-select mr-sm-2" id="aoi-choice" name="modelarea_sel_name"> <!-- inlineFormCustomSelect -->
+                <option selected>Filter points per province</option>
+                <option value="1">CENTRAL</option>
+                <option value="2">COAST</option>
+                <option value="3">EASTERN</option>
+                <option value="3">N. EASTERN</option>
+                <option value="3">NAIROBI</option>
+                <option value="3">NYANZA</option>
+                <option value="3">RIFT VALLEY</option>
+                <option value="3">WESTERN</option>
+              </select>
+            </div>
+<!--             <div class="col-auto my-1">
+              <div class="custom-control custom-checkbox mr-sm-2">
+                <input type="checkbox" class="custom-control-input" id="customControlAutosizing">
+                <label class="custom-control-label" for="customControlAutosizing">Remember my preference</label>
+              </div>
+            </div> -->
+            <div class="col-auto my-1">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+
+            <div class="custom-control custom-switch custom-control-inline">
+              <input type="checkbox" class="custom-control-input" id="customSwitch1">
+              <label class="custom-control-label" for="customSwitch1">2018 poverty heatmap</label>
+            </div>
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="customSwitch2">
+              <label class="custom-control-label" for="customSwitch2">2019 poverty heatmap</label>
+            </div>
+
+          </div>
+        </form>
+
+      {% leaflet_map "mymap" %} <!-- callback="window.map_init"  -->
+      </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+{% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript" src="http://localhost:8000/health.geojson"></script>
+
+      <script type="text/javascript">
+
+          var map;
+                    //define circle marker options
+          var geojsonMarkerOptions = {
+            radius: 1.5,
+            fillCollor: "#5B5959",
+            color: "#69757C",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.5
+          };
+
+          //popup function
+          function popUp(f,l){
+              var out = [];
+              if (f.properties){
+                  for(key in f.properties){
+                      out.push(key+": "+f.properties[key]);
+                  }
+                  l.bindPopup(out.join("<br />"));
+              }
+          }
+
+
+            // health facilities layer
+
+          var health_geojson = {{ default|geojsonfeature|safe }};
+
+
+
+
+          function onEachFeature(feature, layer){
+            if (feature.properties && feature.properties.popupContent) {
+              layer.bindPopup(feature.properties.popupContent);
+            }
+          }
+
+          var markers = L.markerClusterGroup();
+
+          window.addEventListener("map:init", function (event) {
+              map = event.detail.map;
+
+              var lc = map.layerscontrol;
+
+
+              //health facilities
+              // var health_points = L.geoJson.ajax();
+              var health_layer = L.geoJson(health_geojson,
+              {
+                pointToLayer: function(feature, LatLng){
+                  return new L.CircleMarker(LatLng, geojsonMarkerOptions);   //you need to add new javascript class conctructor
+                },
+                onEachFeature: popUp
+              }).addTo(map);
+
+              markers.addLayer(health_layer);
+              map.addLayer(markers);
+              map.fitBounds(markers.getBounds());
+
+              lc.addOverlay(health_layer, 'health Facilities');
+              lc.addOverlay(markers, 'health markerclusters');
+
+              //heatmap
+              //plugin leaflet.heat by Vladimir Agafonkin
+
+              // define the function geojson2heat to get the array of coordinates from my GeoJSON
+
+              geoJson2heat = function(geojson, intensity) {
+                      return geojson.features.map(function(feature) {
+                      return [parseFloat(feature.geometry.coordinates[1]),
+                              parseFloat(feature.geometry.coordinates[0]), intensity];
+                      });
+                      };
+
+              var healthFacilities = geoJson2heat(health_geojson, 4);
+
+              //so now we have an array of coordinates with weight that we can assign to our heatmap
+
+              var heatMap_health = L.heatLayer(healthFacilities,{ radius: 20, blur: 24, maxZoom: 13});
+              map.addLayer(heatMap_health);
+
+
+              lc.addOverlay(heatMap_health, 'health Heat map');
+
+              //map.layerscontrol({collapsed: false}).addTo(map);
+
+
+
+          }, false);
+
+          $(document).ready(function(){
+
+            function displayModelArea(map, data){
+              //L.marker([-1.137387, 36.84009]).addTo(map);
+              new L.geoJson(data).addTo(map);
+            }
+
+            $('#aoi-choice').on('change', function(e){
+              var selecteditem = $(this).find("option:selected").val();
+              $.ajax({
+                url: $("#aoi-form").attr("action"),
+                type: $("#aoi-form").attr("method"),
+                data: { "aoi-choice": selecteditem },
+                success: function(response) {
+                  displayModelArea(map, response)
+                },
+                error: function(xhr, errmsg, err){}
+              }); //end of ajax
+
+            }); //end of on change
+
+          }); //end of document
+
+
+
+
+         // function map_init(map, options){
+
+         // }
+
+      </script>
+{% endblock javascript %}
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="{% static 'bootstrap/vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'bootstrap/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+  <!-- Menu Toggle Script -->
+  <script>
+    $("#menu-toggle").click(function(e) {
+      e.preventDefault();
+      $("#wrapper").toggleClass("toggled");
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
+
+</head>
+<body>
+
+  <!--add event listener for username's field change-->
+{% block javascript %}
+
+<script>
+    $("#id_username").change(function(){
+      console.log($(this).val());
+      // implement the check via ajax
+      $.ajax({
+        url: 'world/validate_username/',
+        data: {
+          'username': username
+        },
+        dataType: 'json',
+        success: function(data){
+          if(data.is_taken){
+            alert("A user with this username already exist. Please enter another Username")
+          }
+        }
+
+      });
+
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Sign Up</button>
+    </form>
+{% endblock content %}
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load geojson_tags %}
+    <title>Title</title>
+</head>
+<body>
+var health_geojson = {{ central_health|geojsonfeature|safe}};
+</body>
+</html>

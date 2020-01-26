@@ -1,0 +1,72 @@
+{% load leaflet_tags %}
+{% load geojson_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Simple heat map</title>
+
+  <!--    django-leaflet tags-->
+  {% leaflet_js %}
+  {% leaflet_css %}
+
+  <!-- Bootstrap core CSS -->
+  <link href="{% static 'bootstrap/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+  <!-- Custom styles -->
+  <link href="{% static 'bootstrap/css/simple-sidebar.css' %}" rel="stylesheet">
+
+  <!--      static files-->
+
+  <!-- css spinner -->
+      <!-- <link rel="stylesheet" type="text/css" href="{% static 'spin.js/spin.css' %}"> -->
+
+  <!-- javascript -->
+  <script src="{% static 'leaflet-ajax/dist/leaflet.ajax.min.js' %}"></script>
+  <!--       <script src="{% static 'spin.js/spin.js' %}"></script> -->
+  <script src="{% static 'leaflet-spin/leaflet.spin.js' %}"></script>
+
+    <!-- heatmap by Vladimir Agafonkin-->
+  <script src="{% static 'heatmap/leaflet.heat.js' %}"></script>
+
+  <!--Jquesy-->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+
+  <!-- load markercluster plugin -->
+  <link rel="stylesheet" href="{% static 'leaflet-markercluster/dist/MarkerCluster.css' %}" />
+  <link rel="stylesheet" href="{% static 'leaflet-markercluster/dist/MarkerCluster.Default.css' %}" />
+  <script src="{% static 'leaflet-markercluster/src/leaflet.markercluster-src.js' %}"></script>
+
+  <!--    map style -->
+{% block style %}{% endblock %}
+
+</head>
+<body>
+  <div class="d-flex" id="wrapper">
+    {% block content %}
+    {% leaflet_map "mymap" %} <!-- callback="window.map_init"  -->
+    {% endblock %}
+  </div>
+
+<!-- Bootstrap core JavaScript -->
+  <script src="{% static 'bootstrap/vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'bootstrap/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <!-- Menu Toggle Script -->
+  <script>
+    $("#menu-toggle").click(function(e) {
+      e.preventDefault();
+      $("#wrapper").toggleClass("toggled");
+    });
+  </script>
+{% block javascript %}{% endblock %}
+</body>
+
+</html>

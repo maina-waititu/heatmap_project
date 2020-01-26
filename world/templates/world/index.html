@@ -1,0 +1,102 @@
+{% extends base.html %}
+
+
+{% block style %}
+          .leaflet-container {
+                width: 100%;
+                height: 400px;
+          }
+
+          #specialbigmap {
+                height: 800px;
+          }
+          / * Resize the "display_raw" textbox */
+          .django-leaflet-raw-textarea {
+                width: 100%;
+          }
+{% endblock style %}
+
+{% block content %}
+
+   <div class="container">
+      <h1>WISH2ACTION POVERTY HEAT MAP</h1>
+<!--  <script type="text/javascript">-->
+
+<!--    window.addEventListener ("map:init", function(e) {-->
+<!--            var detail = e.detail;-->
+
+<!--            var geojsonPointToLayer = new L.GeoJSON.AJAX({{ points | safe}});-->
+<!--            geojsonPointToLayer.addTo(mymap);-->
+
+<!--          }, false);-->
+<!--</script>-->
+       <script type="text/javascript">
+         function map_init_basic (map, options){
+
+              //define circle marker options
+              var geojsonMarkerOptions = {
+                radius: 1,
+                fillCollor: "#ff7800",
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.5
+              };
+
+              //popup function
+              function popUp(f,l){
+                  var out = [];
+                  if (f.properties){
+                      for(key in f.properties){
+                          out.push(key+": "+f.properties[key]);
+                      }
+                      l.bindPopup(out.join("<br />"));
+                  }
+              }
+
+// var geojsonFeature = "{{ 'points'|safe }}";
+
+// load stations geojson data
+// $.getJSON(geojsonFeature, function(data){
+//   L.geoJson(data, {
+//     pointToLayer: function(feature, latlng) {
+//       return L.circleMarker(latlng, geojsonMarkerOptions);
+//     }, 
+//     onEachFeature: popUp,
+//   }).addTo(map);
+// });
+
+// var geojsonPointLayer = new L.GeoJSON.AJAX(geojsonFeature, {
+//       pointToLayer: function(feature, latlng) {
+//         return L.circleMarker(latlng, geojsonMarkerOptions);
+//     }
+// });
+// geojsonPointLayer.on('data.loaded', function(){
+//   geojsonPointLayer.addTo(map);
+// });
+
+
+var geojsonfeature = {{ 'points'|safe }};
+//var collection = {{ object_list|geojsonfeature|safe }};
+
+
+// Leaflet JS
+var pointLayer = new L.geoJson(geojsonfeature);
+
+pointLayer.addTo(map);
+
+}
+       </script>
+
+{% leaflet_map "mymap" callback="window.map_init_basic" %}
+
+    </div>
+{% endblock content %}
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  </body>
+</html>
